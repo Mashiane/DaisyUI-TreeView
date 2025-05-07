@@ -411,7 +411,8 @@ class DaisyUITreeView {
     href = this._cstr(href);
     //
     if (nodeId === "") return;
-
+    if (this.nodeExists(nodeId)) return;
+  
     const hasCheckbox = this.settings.hasCheckbox || false;
     const newNode = { nodeId, parentId, iconUrl, text, href, hasCheckbox };
 
@@ -496,9 +497,31 @@ class DaisyUITreeView {
   removeNode(nodeId) {
     nodeId = this._normalizeId(nodeId);
     if (!this.nodeExists(nodeId)) return;
+  
+    const node = this.findNode(nodeId);
+  
+    // Remove the node from its parent's nodes array
+    if (node.parentId) {
+      const parent = this.findNode(node.parentId);
+      if (parent && parent.nodes) {
+        parent.nodes = parent.nodes.filter((child) => child.nodeId !== nodeId);
+      }
+    } else {
+      // If the node has no parent, it's a root node, so remove it from the tree
+      this.tree = this.tree.filter((rootNode) => rootNode.nodeId !== nodeId);
+    }
+  
+    // Remove the node from the nodeMap
     this.nodeMap.delete(nodeId);
+  
+    // Remove the node from the DOM
     const item = this._getElementById(`${this.treeName}-${nodeId}`);
     if (item) item.remove();
+  
+    // Remove the node from the visible and selected sets
+    this._visibleNodes.delete(nodeId);
+    this._selectedNodes.delete(nodeId);
+    this._checkedNodes.delete(nodeId);
   }
 
   _expandNode(nodeId) {
