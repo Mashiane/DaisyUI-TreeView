@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<head lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DaisyUI TreeView CDN Demo</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<script src="./dist/daisyuitreeview.umd.js"></script>
+</head>
+<body class="p-6">
+  <div class="container mx-auto">
+    <h1 class="text-2xl font-bold mb-4">DaisyUI TreeView Demo</h1>
+    <div class="mb-4">
+      <button id="expandAll" class="btn btn-primary btn-sm">Expand All</button>
+      <button id="collapseAll" class="btn btn-secondary btn-sm">Collapse All</button>
+      <button id="addNode" class="btn btn-accent btn-sm">Add Node</button>
+      <button id="removeNode" class="btn btn-error btn-sm">Remove Node</button>
+      <button id="editNode" class="btn btn-info btn-sm">Edit Node</button>
+      <button id="selectNode" class="btn btn-success btn-sm">Select Node</button>
+      <button id="checkNode" class="btn btn-warning btn-sm">Check Node</button>
+    </div>
+    <ul id="treeContainer" class="menu menu-xs bg-base-200 rounded-box w-full"></ul>
+  </div>
+
+  <script>
+    const treeContainer = document.getElementById("treeContainer");
+    const treeView = new DaisyUITreeView(treeContainer, {
+      hasCheckbox: true,
+      inlineEdit: true,
+      dragNDrop: false,
+      expandIconUrl: "chevron-down-solid.svg",
+      collapseIconUrl: "chevron-right-solid.svg",
+    });
+
+    treeView.addNode("", "i1", "", "1", "")
+	  treeView.addNode("", "i2", "", "2", "")
+	  treeView.addNode("i2", "i21", "", "2.1", "")
+	  treeView.addNode("i2", "i22", "", "2.2", "")
+	  treeView.addNode("i2", "i23", "", "2.3", "")
+	  treeView.addNode("i23", "i231", "", "2.3.1", "")
+	  treeView.addNode("i23", "i232", "", "2.3.2", "")
+	  treeView.addNode("", "i3", "", "3", "")
+    treeView.refresh();
+
+    // Button actions
+    document.getElementById("expandAll").addEventListener("click", () => {
+      treeView.expandAll();
+    });
+
+    document.getElementById("collapseAll").addEventListener("click", () => {
+      treeView.collapseAll();
+    });
+
+    document.getElementById("addNode").addEventListener("click", () => {
+      treeView.addNode("i23", "i4", "", "4", "");
+      treeView.refresh();
+    });
+
+    document.getElementById("removeNode").addEventListener("click", () => {
+      treeView.removeNode("i4");
+      treeView.refresh();
+    });
+
+    document.getElementById("editNode").addEventListener("click", () => {
+      treeView.enableInlineEditing("i1");
+    });
+
+    document.getElementById("selectNode").addEventListener("click", () => {
+      treeView.selectNode("i1", true);
+    });
+
+    document.getElementById("checkNode").addEventListener("click", () => {
+      treeView.checkNode("i2", true);
+    });
+  </script>
+</body>
+</html>
