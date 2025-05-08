@@ -6,9 +6,14 @@
   <title>DaisyUI TreeView CDN Demo</title>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-<script src="./dist/SVGRenderer.min.js"></script>
+<script src="./src/SVGRenderer.min.js"></script>
 <script src="./dist/daisyuitreeview.umd.js"></script>
-</head>
+<style>
+  .drag-over {
+    border: 2px dashed #007bff;
+  }
+</style>
+  </head>
 <body class="p-6">
   <div class="container mx-auto">
     <h1 class="text-2xl font-bold mb-4">DaisyUI TreeView Demo</h1>
@@ -20,6 +25,7 @@
       <button id="editNode" class="btn btn-info btn-sm">Edit Node</button>
       <button id="selectNode" class="btn btn-success btn-sm">Select Node</button>
       <button id="checkNode" class="btn btn-warning btn-sm">Check Node</button>
+      <button id="uncheckNode" class="btn btn-primary btn-sm">Un Check Node</button>
     </div>
     <ul id="treeContainer" class="menu menu-xs bg-base-200 rounded-box w-full"></ul>
   </div>
@@ -29,9 +35,9 @@
     const treeView = new DaisyUITreeView(treeContainer, {
       hasCheckbox: true,
       inlineEdit: true,
-      dragNDrop: false,
-      expandIconUrl: "chevron-down-solid.svg",
-      collapseIconUrl: "chevron-right-solid.svg",
+      dragNDrop: true,
+      expandIconUrl: "./src/chevron-down-solid.svg",
+      collapseIconUrl: "./src/chevron-right-solid.svg",
     });
 
     treeView.addNode("", "i1", "", "1", "")
@@ -68,11 +74,15 @@
     });
 
     document.getElementById("selectNode").addEventListener("click", () => {
-      treeView.selectNode("i1", true);
+      treeView.selectNode("i3", true);
     });
 
     document.getElementById("checkNode").addEventListener("click", () => {
       treeView.checkNode("i2", true);
+    });
+
+    document.getElementById("uncheckNode").addEventListener("click", () => {
+      treeView.checkNode("i2", false);
     });
   </script>
 </body>
