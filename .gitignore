@@ -3,5 +3,4 @@ package-lock.json
 package.json
 vitest.config.ts
 .babelrc
-dist
 nodemon.json
