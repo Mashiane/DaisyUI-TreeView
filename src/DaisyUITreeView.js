@@ -2,6 +2,7 @@ const DEFAULTS = {
   data: [],
   expandIconUrl: "./assets/chevron-down-solid.svg",
   collapseIconUrl: "./assets/chevron-right-solid.svg",
+  blankIconUrl: "./assets/blank.svg",
   hasCheckbox: false,
   treeName: "treeView", // Changed to camelCase
   multipleSelect: false,
@@ -10,10 +11,16 @@ const DEFAULTS = {
   iconWidth: "16px",
   inlineEdit: false,
   dragNDrop: false,
-  itemColor: '',
+  itemColor: 'primary',
   itemActiveColor: '',
   itemFocusColor: '',
-  itemHoverColor: ''
+  itemHoverColor: '',
+  UseLocalstorage: false,
+  replace: false,
+  checkBoxSize: "md",
+  textBoxSize: "sm",
+  checkBoxActiveColor: "",
+  checkBoxActiveBorderColor: "",
 };
 
 /**
@@ -51,6 +58,12 @@ class DaisyUITreeView {
     this._checkedNodes = new Set();
     this._selectedNodes = new Set();
     this._visibleNodes = new Set();
+    this._activeColor = this.fixColor('checked:bg', this.settings.checkBoxActiveColor);
+    this._activeBorderColor = this.fixColor('checked:border', this.settings.checkBoxActiveBorderColor);
+    this._inputColorClass = `input-${this.settings.itemColor}`;
+    this._checkColorClass = `checkbox-${this.settings.itemColor}`;
+    this._inputSizeClass = `input-${this.settings.textBoxSize}`;
+    this._checkSizeClass = `checkbox-${this.settings.checkBoxSize}`;
     if (this.settings.data) {
       let data = Array.isArray(this.settings.data)
         ? JSON.parse(JSON.stringify(this.settings.data))
@@ -86,6 +99,30 @@ class DaisyUITreeView {
 
     // Dispatch a custom event to notify about the checkbox change
     this._dispatchEvent("nodeChecked", { node, checked });
+  }
+
+fixColor(prefix, suffix) {
+    // Treat null or undefined as blank
+    prefix = prefix == null ? '' : String(prefix);
+    suffix = suffix == null ? '' : String(suffix);
+
+    if (!prefix || !suffix) {
+        return '';
+    }
+
+    if (suffix.startsWith('#')) {
+        suffix = `[${suffix}]`;
+    }
+
+    if (prefix === 'btn' || prefix === 'badge') {
+        prefix = 'bg';
+    }
+
+    const result = `${prefix}-${suffix}`;
+    if (result.endsWith('-')) {
+        return '';
+    }
+    return result;
   }
 
    /**
@@ -173,16 +210,18 @@ class DaisyUITreeView {
         summary.id = `${this.treeName}-${node.nodeId}-summary`;
         summary.dataset.id = node.nodeId;
         summary.classList.add("xsummary");
-        //if (node.iconUrl === "") node.iconUrl = this.settings.collapseIconUrl;
+        if (node.iconUrl === "") node.iconUrl = this.settings.collapseIconUrl;
         if (node.iconUrl) {
           const icon = document.createElement("svg-renderer");
+          icon.setAttribute("replace", this.settings.replace);
           icon.id = `${this.treeName}-${node.nodeId}-icon`;
           icon.dataset.id = node.nodeId;
+          icon.setAttribute("use-localstorage", this.settings.UseLocalstorage);
           icon.dataset.src = node.expanded
             ? this.settings.expandIconUrl
             : this.settings.collapseIconUrl;
           icon.classList.add("state-icon", "xicon");
-          icon.setAttribute("style", "pointer-events:none;"); // Updated
+          icon.setAttribute("style", "pointer-events:none; min-height:" + this.settings.iconHeight + "; min-width:" + this.settings.iconWidth + ";"); // Updated
           icon.setAttribute("fill", "currentColor"); // Updated
           icon.setAttribute("data-js", "enabled"); // Updated
           icon.setAttribute("width", this.settings.iconWidth);
@@ -195,6 +234,11 @@ class DaisyUITreeView {
           checkbox.id = `${this.treeName}-${node.nodeId}-check`;
           checkbox.type = "checkbox";
           checkbox.classList.add("checkbox");
+          checkbox.classList.add(this._checkColorClass);
+          checkbox.classList.add(this.settings.checkBoxSize);
+          checkbox.classList.add(this._activeColor);
+          checkbox.classList.add(this._activeBorderColor);
+          checkbox.classList.add(this._checkSizeClass);
           checkbox.dataset.id = node.nodeId;
           checkbox.checked = this._checkedNodes.has(node.nodeId);
           summary.appendChild(checkbox);
@@ -208,10 +252,12 @@ class DaisyUITreeView {
           "input",
           "input-ghost",
           "hidden",
-          "input-sm",
-          "w-full",
-          "xinput"
+          "xinput", 
+          "w-full"
         );
+        txtBox.classList.add(this.settings.textBoxSize);
+        txtBox.classList.add(this._inputColorClass);   
+        txtBox.classList.add(this._inputSizeClass);       
         txtBox.dataset.id = node.nodeId;
         summary.appendChild(txtBox);
 
@@ -245,16 +291,16 @@ class DaisyUITreeView {
         if (node.href) {
           link.setAttribute("href", node.href);
         }
-
+        if (node.iconUrl === "") node.iconUrl = this.settings.blankIconUrl;
         if (node.iconUrl) {
           const icon = document.createElement("svg-renderer");
+          icon.setAttribute("replace", this.settings.replace);
+          icon.setAttribute("use-localstorage", this.settings.UseLocalstorage);
           icon.dataset.id = node.nodeId;
+          icon.dataset.src = node.iconUrl;
           icon.id = `${this.treeName}-${node.nodeId}-icon`;
-          icon.dataset.src = node.expanded
-            ? this.settings.expandIconUrl
-            : this.settings.collapseIconUrl;
           icon.classList.add("state-icon");
-          icon.setAttribute("style", "pointer-events:none;"); // Updated
+          icon.setAttribute("style", "pointer-events:none; min-height:" + this.settings.iconHeight + "; min-width:" + this.settings.iconWidth + ";"); // Updated
           icon.setAttribute("fill", "currentColor"); // Updated
           icon.setAttribute("data-js", "enabled"); // Updated
           icon.setAttribute("width", this.settings.iconWidth);
@@ -269,6 +315,11 @@ class DaisyUITreeView {
           checkbox.classList.add("checkbox");
           checkbox.dataset.id = node.nodeId;
           checkbox.checked = this._checkedNodes.has(node.nodeId);
+          checkbox.classList.add(this._checkColorClass);
+          checkbox.classList.add(this.settings.checkBoxSize);
+          checkbox.classList.add(this._activeColor);
+          checkbox.classList.add(this._activeBorderColor);
+          checkbox.classList.add(this._checkSizeClass);
           link.appendChild(checkbox);
         }
 
@@ -280,10 +331,12 @@ class DaisyUITreeView {
           "input",
           "input-ghost",
           "hidden",
-          "input-sm",
           "w-full",
           "xinput"
         );
+        txtBox.classList.add(this.settings.textBoxSize);
+        txtBox.classList.add(this._inputColorClass);   
+        txtBox.classList.add(this._inputSizeClass);
         txtBox.dataset.id = node.nodeId;
         link.appendChild(txtBox);
 
@@ -325,8 +378,11 @@ class DaisyUITreeView {
       const evt = show ? "nodeExpanded" : "nodeCollapsed";
       const icon = this._getElementById(`${this.treeName}-${id}-icon`);
       if (icon) {
-        if (show) icon.setAttribute("data-src", this.settings.expandIconUrl);
-        else icon.setAttribute("data-src", this.settings.collapseIconUrl);
+        if (show) {
+          icon.setAttribute("data-src", this.settings.expandIconUrl);
+        } else {
+          icon.setAttribute("data-src", this.settings.collapseIconUrl);
+        }
         node.iconUrl = icon.getAttribute("data-src");
       }
       this._dispatchEvent(evt, { node });
