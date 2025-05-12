@@ -68,6 +68,8 @@ describe('DaisyUITreeView', () => {
   it('should select and deselect a node', () => {
     treeView.selectNode('a', true);
     expect(treeView.getSelectedNode().nodeId).toBe('a');
+    const nodeA = document.getElementById(`${treeView.treeName}-a`);
+    expect(nodeA.classList.contains('menu-active')).toBe(true);
     treeView.selectNode('a', false);
     node = treeView.getSelectedNode();
     expect(node).toBeNull();

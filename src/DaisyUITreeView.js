@@ -76,6 +76,9 @@ class DaisyUITreeView {
     this.element.addEventListener("blur", this._onBlur.bind(this), true);
     this.element.addEventListener("keydown", this._onKeydown.bind(this));
     this.element.addEventListener("click", (e) => this._onClick(e));
+    const style = document.createElement('style');
+    style.innerHTML = `.xsummary::after { display: none !important; }`;
+    document.head.appendChild(style);
   }
 
   _toggleVisibility(element, show) {
@@ -240,11 +243,10 @@ fixColor(prefix, suffix) {
           checkbox.id = `${this.treeName}-${node.nodeId}-check`;
           checkbox.type = "checkbox";
           checkbox.classList.add("checkbox");
-          checkbox.classList.add(this._checkColorClass);
-          checkbox.classList.add(this.settings.checkBoxSize);
-          checkbox.classList.add(this._activeColor);
-          checkbox.classList.add(this._activeBorderColor);
-          checkbox.classList.add(this._checkSizeClass);
+          if (this._checkColorClass !== '') checkbox.classList.add(this._checkColorClass);
+          if (this._activeColor !== '') checkbox.classList.add(this._activeColor);
+          if (this._activeBorderColor !== '') checkbox.classList.add(this._activeBorderColor);
+          if (this._checkSizeClass !== '') checkbox.classList.add(this._checkSizeClass);
           checkbox.dataset.id = node.nodeId;
           checkbox.checked = this._checkedNodes.has(node.nodeId);
           hostdiv.appendChild(checkbox);
@@ -261,9 +263,8 @@ fixColor(prefix, suffix) {
           "xinput", 
           "w-full"
         );
-        txtBox.classList.add(this.settings.textBoxSize);
-        txtBox.classList.add(this._inputColorClass);   
-        txtBox.classList.add(this._inputSizeClass);       
+        if (this._inputColorClass !== '') txtBox.classList.add(this._inputColorClass);   
+        if (this._inputSizeClass !== '') txtBox.classList.add(this._inputSizeClass);       
         txtBox.dataset.id = node.nodeId;
         hostdiv.appendChild(txtBox);
 
@@ -322,11 +323,10 @@ fixColor(prefix, suffix) {
           checkbox.classList.add("checkbox");
           checkbox.dataset.id = node.nodeId;
           checkbox.checked = this._checkedNodes.has(node.nodeId);
-          checkbox.classList.add(this._checkColorClass);
-          checkbox.classList.add(this.settings.checkBoxSize);
-          checkbox.classList.add(this._activeColor);
-          checkbox.classList.add(this._activeBorderColor);
-          checkbox.classList.add(this._checkSizeClass);
+          if (this._checkColorClass !== '') checkbox.classList.add(this._checkColorClass);
+          if (this._activeColor !== '') checkbox.classList.add(this._activeColor);
+          if (this._activeBorderColor !== '') checkbox.classList.add(this._activeBorderColor);
+          if (this._checkSizeClass !== '') checkbox.classList.add(this._checkSizeClass);
           link.appendChild(checkbox);
         }
 
@@ -341,9 +341,8 @@ fixColor(prefix, suffix) {
           "w-full",
           "xinput"
         );
-        txtBox.classList.add(this.settings.textBoxSize);
-        txtBox.classList.add(this._inputColorClass);   
-        txtBox.classList.add(this._inputSizeClass);
+        if (this._inputColorClass !== '') txtBox.classList.add(this._inputColorClass);   
+        if (this._inputSizeClass !== '') txtBox.classList.add(this._inputSizeClass);
         txtBox.dataset.id = node.nodeId;
         link.appendChild(txtBox);
 

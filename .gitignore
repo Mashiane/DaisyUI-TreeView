@@ -4,3 +4,4 @@ package.json
 vitest.config.ts
 .babelrc
 nodemon.json
+vite.config.js
