@@ -15,7 +15,7 @@ const DEFAULTS = {
   itemActiveColor: '',
   itemFocusColor: '',
   itemHoverColor: '',
-  UseLocalstorage: false,
+  UseLocalstorage: true,
   replace: false,
   checkBoxSize: "md",
   textBoxSize: "sm",
@@ -198,6 +198,7 @@ fixColor(prefix, suffix) {
         item.classList.add("menu-disabled");
       }
 
+           
       if (node.nodes && node.nodes.length > 0) {
         const details = document.createElement("details");
         details.id = `${this.treeName}-${node.nodeId}-details`;
@@ -209,7 +210,12 @@ fixColor(prefix, suffix) {
         const summary = document.createElement("summary");
         summary.id = `${this.treeName}-${node.nodeId}-summary`;
         summary.dataset.id = node.nodeId;
-        summary.classList.add("xsummary");
+        summary.classList.add("xsummary");      
+        
+        const hostdiv = document.createElement("div");
+        hostdiv.id = `${this.treeName}-${node.nodeId}-div`;
+        hostdiv.classList.add("flex", "items-center", "gap-3", "w-full", "xdiv"); 
+        
         if (node.iconUrl === "") node.iconUrl = this.settings.collapseIconUrl;
         if (node.iconUrl) {
           const icon = document.createElement("svg-renderer");
@@ -226,7 +232,7 @@ fixColor(prefix, suffix) {
           icon.setAttribute("data-js", "enabled"); // Updated
           icon.setAttribute("width", this.settings.iconWidth);
           icon.setAttribute("height", this.settings.iconHeight);
-          summary.appendChild(icon);
+          hostdiv.appendChild(icon);
         }
 
         if (this.settings.hasCheckbox) {
@@ -241,7 +247,7 @@ fixColor(prefix, suffix) {
           checkbox.classList.add(this._checkSizeClass);
           checkbox.dataset.id = node.nodeId;
           checkbox.checked = this._checkedNodes.has(node.nodeId);
-          summary.appendChild(checkbox);
+          hostdiv.appendChild(checkbox);
         }
 
         const txtBox = document.createElement("input");
@@ -259,7 +265,7 @@ fixColor(prefix, suffix) {
         txtBox.classList.add(this._inputColorClass);   
         txtBox.classList.add(this._inputSizeClass);       
         txtBox.dataset.id = node.nodeId;
-        summary.appendChild(txtBox);
+        hostdiv.appendChild(txtBox);
 
         const textNode = document.createElement("span");
         textNode.id = `${this.treeName}-${node.nodeId}-text`;
@@ -267,7 +273,8 @@ fixColor(prefix, suffix) {
         textNode.dataset.id = node.nodeId;
         textNode.classList.add("xspan");
 
-        summary.appendChild(textNode);
+        hostdiv.appendChild(textNode);
+        summary.appendChild(hostdiv);
         details.appendChild(summary);
 
         const nestedList = document.createElement("ul");
@@ -276,13 +283,13 @@ fixColor(prefix, suffix) {
 
         this._build(nestedList, node.nodes);
         details.appendChild(nestedList);
-
         item.appendChild(details);
       } else {
-        const link = document.createElement("a");
+        // div class="flex items-center gap-3 w-full"
+        const link = document.createElement("div");
         link.id = `${this.treeName}-${node.nodeId}-anchor`;
         link.dataset.id = node.nodeId;
-        link.classList.add("xanchor");
+        link.classList.add("xanchor", "flex", "items-center", "gap-3", "w-full");
         if (this.settings.itemColor !== '') link.classList.add(this.settings.itemColor);
         if (this.settings.itemActiveColor !== '') link.classList.add(this.settings.itemActiveColor);
         if (this.settings.itemFocusColor !== '') link.classList.add(this.settings.itemFocusColor);
