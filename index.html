@@ -8,6 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 <script src="./src/SVGRenderer.min.js"></script>
 <script src="./dist/daisyuitreeview.umd.js"></script>
+<script type="module" src="./src/ContextMenu.js"></script>
 <style>
   .drag-over {
     border: 2px dashed #007bff;
@@ -28,9 +29,11 @@
       <button id="uncheckNode" class="btn btn-primary btn-sm">Un Check Node</button>
     </div>
     <ul id="treeContainer" class="menu menu-xs bg-base-200 rounded-box w-full"></ul>
+    <context-menu id="contextMenu" target="#treeContainer"></context-menu>
   </div>
 
   <script>
+    document.addEventListener("DOMContentLoaded", () => {
     const treeContainer = document.getElementById("treeContainer");
     const treeView = new DaisyUITreeView(treeContainer, {
       hasCheckbox: true,
@@ -48,16 +51,16 @@
       itemColor:"primary"
     });
 
-    treeView.addNode("", "i1", "", "1", "")
-	  treeView.addNode("", "i2", "", "2", "")
-	  treeView.addNode("i2", "i21", "", "2.1", "")
-	  treeView.addNode("i2", "i22", "", "2.2", "")
-	  treeView.addNode("i2", "i23", "", "2.3", "")
-	  treeView.addNode("i23", "i231", "", "2.3.1", "")
-	  treeView.addNode("i23", "i232", "", "2.3.2", "")
-	  treeView.addNode("", "i3", "", "3", "")
+    treeView.addNode("", "i1", "./src/file-lines-solid.svg", "1", "")
+	  treeView.addNode("", "i2", "./src/file-lines-solid.svg", "2", "")
+	  treeView.addNode("i2", "i21", "./src/file-lines-solid.svg", "2.1", "")
+	  treeView.addNode("i2", "i22", "./src/file-lines-solid.svg", "2.2", "")
+	  treeView.addNode("i2", "i23", "./src/file-lines-solid.svg", "2.3", "")
+	  treeView.addNode("i23", "i231", "./src/file-lines-solid.svg", "2.3.1", "")
+	  treeView.addNode("i23", "i232", "./src/file-lines-solid.svg", "2.3.2", "")
+	  treeView.addNode("", "i3", "./src/file-lines-solid.svg", "3", "")
     treeView.refresh();
-
+    
     // Button actions
     document.getElementById("expandAll").addEventListener("click", () => {
       treeView.expandAll();
@@ -92,6 +95,60 @@
     document.getElementById("uncheckNode").addEventListener("click", () => {
       treeView.checkNode("i2", false);
     });
+
+    const contextMenu = document.getElementById("contextMenu");
+    contextMenu.menuSize = "menu-md";	
+    contextMenu.menuBackground = "bg-base-200";
+    contextMenu.menuRoundedBox = false;
+    contextMenu.menuShadow = "shadow-md"; 
+    contextMenu.menuWidth = "w-60";
+
+  // Add root menu items
+  contextMenu.clear();
+  // Add node movement menu items
+  contextMenu.addItem("", "addnodeBefore", "./src/table-column-plus-before.svg", "Add Before");
+  contextMenu.addItem("", "addnodeAfter", "./src/table-column-plus-after.svg", "Add After");
+  contextMenu.addItem("", "nodeMoveLeft", "./src/arrow-left-solid.svg", "Move Left");
+  contextMenu.addItem("", "nodeMoveRight", "./src/arrow-right-solid.svg", "Move Right");
+  contextMenu.addItem("", "nodeMoveUp", "./src/arrow-up-solid.svg", "Move Up");
+  contextMenu.addItem("", "nodeMoveDown", "./src/arrow-down-solid.svg", "Move Down");
+  contextMenu.refresh();
+  
+// Listen for the custom ItemClick event
+  contextMenu.addEventListener("ItemClick", (event) => {
+    const elementId = event.detail.elementId;
+    const element = document.getElementById(elementId);
+    const nodeId = element ? element.dataset.id : '';
+    const action = event.detail.node.nodeId;
+    
+    if (action) {
+      switch (action) {
+        case "addnodebefore":
+          treeView.addNodeBefore(nodeId, `${nodeId}before`, "", `${nodeId} Before`, "");
+          break;
+        case "addnodeafter":
+          treeView.addNodeAfter(nodeId, `${nodeId}after`, "", `${nodeId} After`, "");
+          break;
+        case "nodemoveleft":
+          treeView.nodeMoveLeft(nodeId);
+          break;
+        case "nodemoveright":
+          treeView.nodeMoveRight(nodeId);
+          break;
+        case "nodemoveup":
+          treeView.nodeMoveUp(nodeId);
+          break;
+        case "nodemovedown":
+          treeView.nodeMoveDown(nodeId);
+          break;
+        
+      }
+    } else {
+      console.warn("No nodeId found for the target element.");
+    }
+  });
+    });
   </script>
 </body>
 </html>
+``` 

@@ -217,19 +217,31 @@ fixColor(prefix, suffix) {
         
         const hostdiv = document.createElement("div");
         hostdiv.id = `${this.treeName}-${node.nodeId}-div`;
+        hostdiv.dataset.id = node.nodeId;
         hostdiv.classList.add("flex", "items-center", "gap-3", "w-full", "xdiv"); 
-        
-        if (node.iconUrl === "") node.iconUrl = this.settings.collapseIconUrl;
-        if (node.iconUrl) {
-          const icon = document.createElement("svg-renderer");
-          icon.setAttribute("replace", this.settings.replace);
-          icon.id = `${this.treeName}-${node.nodeId}-icon`;
-          icon.dataset.id = node.nodeId;
-          icon.setAttribute("use-localstorage", this.settings.UseLocalstorage);
-          icon.dataset.src = node.expanded
+        //expand collapse icon
+        const expandicon = document.createElement("svg-renderer");        
+        expandicon.setAttribute("replace", false);
+        expandicon.id = `${this.treeName}-${node.nodeId}-expandicon`;
+        expandicon.dataset.id = node.nodeId;
+        expandicon.setAttribute("use-localstorage", this.settings.UseLocalstorage);
+        expandicon.dataset.src = node.expanded
             ? this.settings.expandIconUrl
             : this.settings.collapseIconUrl;
-          icon.classList.add("state-icon", "xicon");
+        expandicon.setAttribute("style", "pointer-events:none; min-height:" + this.settings.iconHeight + "; min-width:" + this.settings.iconWidth + ";"); // Updated
+        expandicon.setAttribute("fill", "currentColor"); // Updated
+        expandicon.setAttribute("data-js", "enabled"); // Updated
+        expandicon.setAttribute("width", this.settings.iconWidth);
+        expandicon.setAttribute("height", this.settings.iconHeight);
+        hostdiv.appendChild(expandicon);
+
+        if (node.iconUrl) {
+          const icon = document.createElement("svg-renderer");
+          icon.setAttribute("replace", true);
+          icon.id = `${this.treeName}-${node.nodeId}-icon`;
+          icon.setAttribute("use-localstorage", this.settings.UseLocalstorage);
+          icon.dataset.src = node.iconUrl
+          icon.dataset.id = node.nodeId;
           icon.setAttribute("style", "pointer-events:none; min-height:" + this.settings.iconHeight + "; min-width:" + this.settings.iconWidth + ";"); // Updated
           icon.setAttribute("fill", "currentColor"); // Updated
           icon.setAttribute("data-js", "enabled"); // Updated
@@ -299,15 +311,28 @@ fixColor(prefix, suffix) {
         if (node.href) {
           link.setAttribute("href", node.href);
         }
-        if (node.iconUrl === "") node.iconUrl = this.settings.blankIconUrl;
+
+         //expand collapse icon
+        const expandicon = document.createElement("svg-renderer");        
+        expandicon.setAttribute("replace", this.settings.replace);
+        expandicon.id = `${this.treeName}-${node.nodeId}-blankicon`;
+        expandicon.dataset.id = node.nodeId;
+        expandicon.setAttribute("use-localstorage", this.settings.UseLocalstorage);
+        expandicon.dataset.src = this.settings.blankIconUrl;        
+        expandicon.setAttribute("style", "pointer-events:none; min-height:" + this.settings.iconHeight + "; min-width:" + this.settings.iconWidth + ";"); // Updated
+        expandicon.setAttribute("fill", "currentColor"); // Updated
+        expandicon.setAttribute("data-js", "enabled"); // Updated
+        expandicon.setAttribute("width", this.settings.iconWidth);
+        expandicon.setAttribute("height", this.settings.iconHeight);
+        link.appendChild(expandicon);
+
         if (node.iconUrl) {
           const icon = document.createElement("svg-renderer");
-          icon.setAttribute("replace", this.settings.replace);
+          icon.setAttribute("replace", true);
           icon.setAttribute("use-localstorage", this.settings.UseLocalstorage);
-          icon.dataset.id = node.nodeId;
           icon.dataset.src = node.iconUrl;
+          icon.dataset.id = node.nodeId;
           icon.id = `${this.treeName}-${node.nodeId}-icon`;
-          icon.classList.add("state-icon");
           icon.setAttribute("style", "pointer-events:none; min-height:" + this.settings.iconHeight + "; min-width:" + this.settings.iconWidth + ";"); // Updated
           icon.setAttribute("fill", "currentColor"); // Updated
           icon.setAttribute("data-js", "enabled"); // Updated
@@ -382,14 +407,14 @@ fixColor(prefix, suffix) {
       show = !show;
       node.expanded = show;
       const evt = show ? "nodeExpanded" : "nodeCollapsed";
-      const icon = this._getElementById(`${this.treeName}-${id}-icon`);
+      const icon = this._getElementById(`${this.treeName}-${id}-expandicon`);
       if (icon) {
         if (show) {
           icon.setAttribute("data-src", this.settings.expandIconUrl);
         } else {
           icon.setAttribute("data-src", this.settings.collapseIconUrl);
         }
-        node.iconUrl = icon.getAttribute("data-src");
+        //node.iconUrl = icon.getAttribute("data-src");
       }
       this._dispatchEvent(evt, { node });
       return;
@@ -526,7 +551,8 @@ fixColor(prefix, suffix) {
     //
     if (nodeId === "") return;
     if (this.nodeExists(nodeId)) return;
-  
+    if (iconUrl === "") iconUrl = this.settings.blankIconUrl;
+    
     const hasCheckbox = this.settings.hasCheckbox || false;
     const newNode = { nodeId, parentId, iconUrl, text, href, hasCheckbox };
 
@@ -544,6 +570,82 @@ fixColor(prefix, suffix) {
     this.nodeMap.set(nodeId, newNode); // Add to node map
     this._visibleNodes.add(nodeId);
   }
+
+/**
+ * Adds a new node before a specified node ID.
+ * @param {string} targetNodeId - The ID of the target node before which the new node will be added.
+ * @param {string} nodeId - The ID of the new node.
+ * @param {string} [iconUrl=""] - URL for the node's icon.
+ * @param {string} text - The text content of the node.
+ * @param {string} [href=""] - The hyperlink for the node.
+ */
+addNodeBefore(targetNodeId, nodeId, iconUrl = "", text, href = "") {
+  targetNodeId = this._normalizeId(targetNodeId);
+  nodeId = this._normalizeId(nodeId);
+  iconUrl = this._cstr(iconUrl);
+  text = this._cstr(text);
+  href = this._cstr(href);
+
+  if (!this.nodeExists(targetNodeId) || this.nodeExists(nodeId)) return;
+  if (iconUrl === "") iconUrl = this.settings.blankIconUrl;
+
+  const targetNode = this.findNode(targetNodeId);
+  const parentId = targetNode.parentId;
+  const newNode = { nodeId, parentId, iconUrl, text, href, hasCheckbox: this.settings.hasCheckbox || false };
+
+  if (!parentId) {
+    const index = this.tree.findIndex(node => node.nodeId === targetNodeId);
+    if (index !== -1) this.tree.splice(index, 0, newNode);
+  } else {
+    const parent = this.findNode(parentId);
+    if (parent && parent.nodes) {
+      const index = parent.nodes.findIndex(node => node.nodeId === targetNodeId);
+      if (index !== -1) parent.nodes.splice(index, 0, newNode);
+    }
+  }
+
+  this.nodeMap.set(nodeId, newNode);
+  this._visibleNodes.add(nodeId);
+  this._refresh();
+}
+
+/**
+ * Adds a new node after a specified node ID.
+ * @param {string} targetNodeId - The ID of the target node after which the new node will be added.
+ * @param {string} nodeId - The ID of the new node.
+ * @param {string} [iconUrl=""] - URL for the node's icon.
+ * @param {string} text - The text content of the node.
+ * @param {string} [href=""] - The hyperlink for the node.
+ */
+addNodeAfter(targetNodeId, nodeId, iconUrl = "", text, href = "") {
+  targetNodeId = this._normalizeId(targetNodeId);
+  nodeId = this._normalizeId(nodeId);
+  iconUrl = this._cstr(iconUrl);
+  text = this._cstr(text);
+  href = this._cstr(href);
+
+  if (!this.nodeExists(targetNodeId) || this.nodeExists(nodeId)) return;
+  if (iconUrl === "") iconUrl = this.settings.blankIconUrl;
+
+  const targetNode = this.findNode(targetNodeId);
+  const parentId = targetNode.parentId;
+  const newNode = { nodeId, parentId, iconUrl, text, href, hasCheckbox: this.settings.hasCheckbox || false };
+
+  if (!parentId) {
+    const index = this.tree.findIndex(node => node.nodeId === targetNodeId);
+    if (index !== -1) this.tree.splice(index + 1, 0, newNode);
+  } else {
+    const parent = this.findNode(parentId);
+    if (parent && parent.nodes) {
+      const index = parent.nodes.findIndex(node => node.nodeId === targetNodeId);
+      if (index !== -1) parent.nodes.splice(index + 1, 0, newNode);
+    }
+  }
+
+  this.nodeMap.set(nodeId, newNode);
+  this._visibleNodes.add(nodeId);
+  this._refresh();
+}
 
   findNodeRecursive(tree, nodeId) {
     for (const node of tree) {
@@ -791,6 +893,7 @@ fixColor(prefix, suffix) {
 
     if (nodeId === "") return;
     if (!this.nodeExists(nodeId)) return;
+    if (iconUrl === "") iconUrl = this.settings.blankIconUrl;
 
     const node = this.findNode(nodeId);
     node.iconUrl = iconUrl;
@@ -924,6 +1027,144 @@ fixColor(prefix, suffix) {
     this._refresh();
   }
 
+  /**
+   * Moves a node to the same level as its parent.
+   * @param {string} nodeId - The ID of the node to move.
+   */
+  nodeMoveLeft(nodeId) {
+    if (!this.nodeExists(nodeId)) return;
+
+    const node = this.findNode(nodeId);
+    const parentNode = this.findNode(node.parentId);
+
+    if (!parentNode) return; // If there's no parent, the node is already at the root level
+
+    // Update the parentId of the node to the parent's parentId
+    node.parentId = parentNode.parentId;
+
+    // Remove the node from the current parent's children
+    if (parentNode.nodes) {
+      parentNode.nodes = parentNode.nodes.filter((child) => child.nodeId !== nodeId);
+    }
+
+    // Add the node to the new parent's children or to the root level
+    if (node.parentId) {
+      const newParentNode = this.findNode(node.parentId);
+      if (newParentNode) {
+        newParentNode.nodes = newParentNode.nodes || [];
+        newParentNode.nodes.push(node);
+      }
+    } else {
+      this.tree.push(node); // Add to root level if no parentId
+    }
+
+    this._refresh(); // Refresh the tree view to reflect the changes
+  }
+
+  /**
+   * Moves a node to the right, making it a child of its previous sibling.
+   * @param {string} nodeId - The ID of the node to move.
+   */
+  nodeMoveRight(nodeId) {
+    if (!this.nodeExists(nodeId)) return;
+
+    const node = this.findNode(nodeId);
+    const parentNode = this.findNode(node.parentId);
+
+    if (parentNode && parentNode.nodes) {
+      const index = parentNode.nodes.findIndex((child) => child.nodeId === nodeId);
+      if (index > 0) {
+        const newParentNode = parentNode.nodes[index - 1];
+        newParentNode.nodes = newParentNode.nodes || [];
+        newParentNode.nodes.push(node);
+        node.parentId = newParentNode.nodeId;
+        parentNode.nodes.splice(index, 1);
+        this._refresh();
+      } else {
+        console.warn("Cannot move the first child node to the right.");
+      }
+    } else if (!node.parentId) {
+      // Handle case where node has no parent
+      const rootIndex = this.tree.findIndex((rootNode) => rootNode.nodeId === nodeId);
+      if (rootIndex > 0) {
+        const newParentNode = this.tree[rootIndex - 1];
+        newParentNode.nodes = newParentNode.nodes || [];
+        newParentNode.nodes.push(node);
+        node.parentId = newParentNode.nodeId;
+        this.tree.splice(rootIndex, 1);
+        this._refresh();
+      } else {
+        console.warn("Cannot move the first root node to the right.");
+      }
+    } else {
+      console.warn("Cannot move node to the right as it has no valid parent or sibling.");
+    }
+  }
+
+  /**
+   * Moves a node up within its parent's children.
+   * @param {string} nodeId - The ID of the node to move.
+   */
+  nodeMoveUp(nodeId) {
+    if (!this.nodeExists(nodeId)) return;
+
+    const node = this.findNode(nodeId);
+    const parentNode = this.findNode(node.parentId);
+
+    if (parentNode && parentNode.nodes) {
+      const index = parentNode.nodes.findIndex((child) => child.nodeId === nodeId);
+      if (index > 0) {
+        [parentNode.nodes[index - 1], parentNode.nodes[index]] = [
+          parentNode.nodes[index],
+          parentNode.nodes[index - 1],
+        ];
+        this._refresh();
+      }
+    } else if (!node.parentId) {
+      // Handle case where node has no parent
+      const rootIndex = this.tree.findIndex((rootNode) => rootNode.nodeId === nodeId);
+      if (rootIndex > 0) {
+        [this.tree[rootIndex - 1], this.tree[rootIndex]] = [
+          this.tree[rootIndex],
+          this.tree[rootIndex - 1],
+        ];
+        this._refresh();
+      }
+    }
+  }
+
+  /**
+   * Moves a node down within its parent's children.
+   * @param {string} nodeId - The ID of the node to move.
+   */
+  nodeMoveDown(nodeId) {
+    if (!this.nodeExists(nodeId)) return;
+
+    const node = this.findNode(nodeId);
+    const parentNode = this.findNode(node.parentId);
+
+    if (parentNode && parentNode.nodes) {
+      const index = parentNode.nodes.findIndex((child) => child.nodeId === nodeId);
+      if (index < parentNode.nodes.length - 1) {
+        [parentNode.nodes[index], parentNode.nodes[index + 1]] = [
+          parentNode.nodes[index + 1],
+          parentNode.nodes[index],
+        ];
+        this._refresh();
+      }
+    } else if (!node.parentId) {
+      // Handle case where node has no parent
+      const rootIndex = this.tree.findIndex((rootNode) => rootNode.nodeId === nodeId);
+      if (rootIndex < this.tree.length - 1) {
+        [this.tree[rootIndex], this.tree[rootIndex + 1]] = [
+          this.tree[rootIndex + 1],
+          this.tree[rootIndex],
+        ];
+        this._refresh();
+      }
+    }
+  }
+
   _dispatchEvent(eventName, detail) {
     const event = new CustomEvent(eventName, { detail });
     this.element.dispatchEvent(event);
@@ -1005,6 +1246,32 @@ fixColor(prefix, suffix) {
     this._toggleVisibility(txt, false);
     this._toggleVisibility(input, true);
     input.focus();
+  }
+
+  /**
+   * Returns the current tree object.
+   * @returns {Array} The tree object.
+   */
+  getTree() {
+    return this.tree;
+  }
+
+  /**
+   * Flattens the tree object into an array.
+   * @returns {Array} The flattened tree array.
+   */
+  flattenTree() {
+    const flatten = (nodes) => {
+      return nodes.reduce((acc, node) => {
+        acc.push(node);
+        if (node.nodes && node.nodes.length > 0) {
+          acc = acc.concat(flatten(node.nodes));
+        }
+        return acc;
+      }, []);
+    };
+
+    return flatten(this.tree);
   }
 }
 export default DaisyUITreeView;

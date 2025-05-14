@@ -187,4 +187,70 @@ it('should update selected nodes when selectNodes is called again', () => {
     expect(() => treeView.showNode('nonexistent')).not.toThrow();
   });
 
+  it('should move a node to the same level as its parent', () => {
+    treeView.addNode('a', 'aaa', '', 'Node AAA'); // Add a child node to Node AA
+    treeView.refresh();
+
+    treeView.nodeMoveLeft('aa'); // Move Node AA to the same level as Node A
+
+    const movedNode = treeView.findNode('aa');
+    expect(movedNode.parentId).toBe(''); // Node AA should now be at the root level
+
+    const parentNode = treeView.findNode('a');
+    expect(parentNode.nodes).not.toContain(movedNode); // Node AA should no longer be a child of Node A
+
+    const rootNodes = treeView.tree.map(node => node.nodeId);
+    expect(rootNodes).toContain('aa'); // Node AA should now be a root node
+  });
+
+  it('should move a node to the right as a child of its previous sibling', () => {
+    treeView.addNode('a', 'aaa', '', 'Node AAA'); // Add a sibling node to Node AA
+    treeView.addNode('a', 'aab', '', 'Node AAB'); // Add another sibling node to Node AA
+    treeView.refresh();
+
+    treeView.nodeMoveRight('aab'); // Move Node AAB to the right
+
+    const movedNode = treeView.findNode('aab');
+    expect(movedNode.parentId).toBe('aaa'); // Node AAB should now be a child of Node AAA
+
+    const newParentNode = treeView.findNode('aaa');
+    expect(newParentNode.nodes).toContain(movedNode); // Node AAB should now be in Node AAA's children
+  });
+
+  it('should handle moving a node to the right when parent ID is blank', () => {
+    treeView.addNode('', 'root1', '', 'Root Node 1'); // Add a root node
+    treeView.addNode('', 'root2', '', 'Root Node 2'); // Add another root node
+    treeView.refresh();
+
+    treeView.nodeMoveRight('root2'); // Attempt to move Root Node 2 to the right
+
+    const movedNode = treeView.findNode('root2');
+    expect(movedNode.parentId).toBe('root1'); // Root Node 2 should now be a child of Root Node 1
+
+    const newParentNode = treeView.findNode('root1');
+    expect(newParentNode.nodes).toContain(movedNode); // Root Node 2 should now be in Root Node 1's children
+  });
+
+  it('should move a node up within its parent', () => {
+    treeView.addNode('a', 'aaa', '', 'Node AAA'); // Add a sibling node to Node AA
+    treeView.refresh();
+
+    treeView.nodeMoveUp('aaa'); // Move Node AAA up
+
+    const parentNode = treeView.findNode('a');
+    const childNodes = parentNode.nodes.map(node => node.nodeId);
+    expect(childNodes).toEqual(['aaa', 'aa']); // Node AAA should now be before Node AA
+  });
+
+  it('should move a node down within its parent', () => {
+    treeView.addNode('a', 'aaa', '', 'Node AAA'); // Add a sibling node to Node AA
+    treeView.refresh();
+
+    treeView.nodeMoveDown('aa'); // Move Node AA down
+
+    const parentNode = treeView.findNode('a');
+    const childNodes = parentNode.nodes.map(node => node.nodeId);
+    expect(childNodes).toEqual(['aaa', 'aa']); // Node AA should now be after Node AAA
+  });
+
 });
